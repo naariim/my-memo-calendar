@@ -20,21 +20,23 @@
       border-radius: 24px;
       padding: 16px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-    }
-    .header h1 {
-      font-size: 18px;
-      margin: 0;
+      margin-bottom: 8px;
     }
     .header button {
       background: none;
       border: none;
       font-size: 18px;
+    }
+    .month-picker {
+      font-size: 16px;
+      font-weight: 600;
     }
     .calendar {
       display: grid;
@@ -60,45 +62,45 @@
     .date.selected {
       outline: 2px solid #007aff;
     }
-    .date.hasMemo::after {
-      content: '·';
-      display: block;
-      font-size: 22px;
-      line-height: 0;
-      color: #ff3b30;
+    .date.hasMemo {
+      background: #eaf3ff;
     }
-    textarea {
-      width: 100%;
-      height: 100px;
-      border: none;
-      border-radius: 16px;
-      padding: 14px;
-      font-size: 14px;
-      background: #f2f2f7;
-      resize: none;
-    }
-    textarea:focus {
-      outline: none;
+    .memo-area {
+      margin-top: auto;
     }
     .date-label {
       font-size: 13px;
       color: #8e8e93;
       margin-bottom: 6px;
     }
+    textarea {
+      width: 100%;
+      height: 90px;
+      border: none;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 14px;
+      background: #f2f2f7;
+      resize: none;
+      box-sizing: border-box;
+    }
+    textarea:focus { outline: none; }
   </style>
 </head>
 <body>
   <div class="app">
     <div class="header">
       <button onclick="prevMonth()">‹</button>
-      <h1 id="monthYear"></h1>
+      <div class="month-picker" onclick="pickMonth()" id="monthYear"></div>
       <button onclick="nextMonth()">›</button>
     </div>
 
     <div class="calendar" id="calendar"></div>
 
-    <div class="date-label" id="dateLabel">날짜를 선택하세요</div>
-    <textarea id="memo" placeholder="이 날의 메모"></textarea>
+    <div class="memo-area">
+      <div class="date-label" id="dateLabel">날짜를 선택하세요</div>
+      <textarea id="memo" placeholder="이 날의 메모"></textarea>
+    </div>
   </div>
 
 <script>
@@ -110,10 +112,11 @@
   const calendarEl = document.getElementById('calendar');
   const memoEl = document.getElementById('memo');
   const labelEl = document.getElementById('dateLabel');
+  const monthYearEl = document.getElementById('monthYear');
 
   function render() {
     calendarEl.innerHTML = '';
-    document.getElementById('monthYear').innerText = `${year}년 ${month + 1}월`;
+    monthYearEl.innerText = `${year}년 ${month + 1}월`;
 
     ['일','월','화','수','목','금','토'].forEach(d => {
       const div = document.createElement('div');
@@ -157,6 +160,17 @@
     if (!selectedKey) return;
     localStorage.setItem(selectedKey, e.target.value);
     render();
+
+  // 오늘 날짜 자동 선택
+  if (year === today.getFullYear() && month === today.getMonth()) {
+    const todayKey = `${year}-${month + 1}-${today.getDate()}`;
+    const dates = document.querySelectorAll('.date');
+    dates.forEach(el => {
+      if (el.innerText == today.getDate()) {
+        selectDate(todayKey, today.getDate(), el);
+      }
+    });
+  }
   });
 
   function prevMonth() {
@@ -167,6 +181,16 @@
   function nextMonth() {
     month++;
     if (month > 11) { month = 0; year++; }
+    render();
+  }
+
+  function pickMonth() {
+    const y = prompt('이동할 연도 (예: 2026)', year);
+    if (y === null) return;
+    const m = prompt('이동할 월 (1~12)', month + 1);
+    if (m === null) return;
+    year = parseInt(y);
+    month = parseInt(m) - 1;
     render();
   }
 
