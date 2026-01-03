@@ -109,6 +109,7 @@
   let year = today.getFullYear();
   let month = today.getMonth();
   let selectedKey = null;
+  let firstLoad = true;
 
   const calendarEl = document.getElementById('calendar');
   const memoEl = document.getElementById('memo');
@@ -140,12 +141,27 @@
       div.innerText = d;
 
       if (localStorage.getItem(key)) div.classList.add('hasMemo');
-      if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+      if (
+        d === today.getDate() &&
+        month === today.getMonth() &&
+        year === today.getFullYear()
+      ) {
         div.classList.add('today');
       }
 
       div.onclick = () => selectDate(key, d, div);
       calendarEl.appendChild(div);
+    }
+
+    // ⭐ 처음 로드될 때만 오늘 날짜 자동 선택
+    if (firstLoad && year === today.getFullYear() && month === today.getMonth()) {
+      const todayKey = `${year}-${month + 1}-${today.getDate()}`;
+      document.querySelectorAll('.date').forEach(el => {
+        if (el.innerText == today.getDate()) {
+          selectDate(todayKey, today.getDate(), el);
+          firstLoad = false;
+        }
+      });
     }
   }
 
@@ -161,21 +177,6 @@
     if (!selectedKey) return;
     localStorage.setItem(selectedKey, e.target.value);
     render();
-
-  // 처음 로드될 때만 오늘 날짜 자동 선택
-  let firstLoad = true;
-  if (firstLoad && year === today.getFullYear() && month === today.getMonth()) {
-    const todayKey = `${year}-${month + 1}-${today.getDate()}`;
-    const dates = document.querySelectorAll('.date');
-    dates.forEach(el => {
-      if (el.innerText == today.getDate()) {
-        selectDate(todayKey, today.getDate(), el);
-        firstLoad = false;
-      }
-    });
-  }
-    });
-  }
   });
 
   function prevMonth() {
@@ -183,6 +184,7 @@
     if (month < 0) { month = 11; year--; }
     render();
   }
+
   function nextMonth() {
     month++;
     if (month > 11) { month = 0; year++; }
