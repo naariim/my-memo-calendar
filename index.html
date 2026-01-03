@@ -162,14 +162,18 @@
     localStorage.setItem(selectedKey, e.target.value);
     render();
 
-  // 오늘 날짜 자동 선택
-  if (year === today.getFullYear() && month === today.getMonth()) {
+  // 처음 로드될 때만 오늘 날짜 자동 선택
+  let firstLoad = true;
+  if (firstLoad && year === today.getFullYear() && month === today.getMonth()) {
     const todayKey = `${year}-${month + 1}-${today.getDate()}`;
     const dates = document.querySelectorAll('.date');
     dates.forEach(el => {
       if (el.innerText == today.getDate()) {
         selectDate(todayKey, today.getDate(), el);
+        firstLoad = false;
       }
+    });
+  }
     });
   }
   });
