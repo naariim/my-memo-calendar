@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>심플 메모 달력</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+      background: #f2f2f7;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .app {
+      width: 100%;
+      max-width: 390px;
+      background: #fff;
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    .header button {
+      background: none;
+      border: none;
+      font-size: 18px;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .day {
+      font-size: 11px;
+      color: #8e8e93;
+    }
+    .date {
+      padding: 10px 0;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .date.today {
+      background: #007aff;
+      color: white;
+    }
+    .date.selected {
+      outline: 2px solid #007aff;
+    }
+    .date.hasMemo::after {
+      content: '·';
+      display: block;
+      font-size: 22px;
+      line-height: 0;
+      color: #ff3b30;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      border: none;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 14px;
+      background: #f2f2f7;
+      resize: none;
+    }
+    textarea:focus {
+      outline: none;
+    }
+    .date-label {
+      font-size: 13px;
+      color: #8e8e93;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <button onclick="prevMonth()">‹</button>
+      <h1 id="monthYear"></h1>
+      <button onclick="nextMonth()">›</button>
+    </div>
+
+    <div class="calendar" id="calendar"></div>
+
+    <div class="date-label" id="dateLabel">날짜를 선택하세요</div>
+    <textarea id="memo" placeholder="이 날의 메모"></textarea>
+  </div>
+
+<script>
+  const today = new Date();
+  let year = today.getFullYear();
+  let month = today.getMonth();
+  let selectedKey = null;
+
+  const calendarEl = document.getElementById('calendar');
+  const memoEl = document.getElementById('memo');
+  const labelEl = document.getElementById('dateLabel');
+
+  function render() {
+    calendarEl.innerHTML = '';
+    document.getElementById('monthYear').innerText = `${year}년 ${month + 1}월`;
+
+    ['일','월','화','수','목','금','토'].forEach(d => {
+      const div = document.createElement('div');
+      div.className = 'day';
+      div.innerText = d;
+      calendarEl.appendChild(div);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      calendarEl.appendChild(document.createElement('div'));
+    }
+
+    for (let d = 1; d <= lastDate; d++) {
+      const div = document.createElement('div');
+      const key = `${year}-${month + 1}-${d}`;
+      div.className = 'date';
+      div.innerText = d;
+
+      if (localStorage.getItem(key)) div.classList.add('hasMemo');
+      if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+        div.classList.add('today');
+      }
+
+      div.onclick = () => selectDate(key, d, div);
+      calendarEl.appendChild(div);
+    }
+  }
+
+  function selectDate(key, d, el) {
+    document.querySelectorAll('.date').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedKey = key;
+    labelEl.innerText = `${year}년 ${month + 1}월 ${d}일`;
+    memoEl.value = localStorage.getItem(key) || '';
+  }
+
+  memoEl.addEventListener('input', e => {
+    if (!selectedKey) return;
+    localStorage.setItem(selectedKey, e.target.value);
+    render();
+  });
+
+  function prevMonth() {
+    month--;
+    if (month < 0) { month = 11; year--; }
+    render();
+  }
+  function nextMonth() {
+    month++;
+    if (month > 11) { month = 0; year++; }
+    render();
+  }
+
+  render();
+</script>
+</body>
+</html>
